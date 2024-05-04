@@ -3,8 +3,8 @@ use kira::{manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings
 
 use crate::states::*;
 
-pub const WORK_TIME_SECS: u64 = 60;
-pub const BREAK_TIME_SECS: u64 = 60;
+pub const WORK_TIME_SECS: u64 = 32*60 + 30;
+pub const BREAK_TIME_SECS: u64 = 32*60 + 30;
 
 pub struct UserConfig {
 	pub work_time: u64,
@@ -12,16 +12,23 @@ pub struct UserConfig {
 }
 
 impl UserConfig {
+	pub fn get_time_mut(&mut self, work_state: &WorkState) -> &mut u64 {
+		match work_state {
+			WorkState::Resting => &mut self.break_time,
+			WorkState::Working => &mut self.work_time
+		}
+	}
+
 	pub fn get_duration_mins(&self, work_state: &WorkState) -> Duration {
+		match work_state {
+			WorkState::Resting => Duration::from_secs(self.break_time/60),
+			WorkState::Working => Duration::from_secs(self.work_time/60),
+		}
+	}
+	pub fn get_duration_secs(&self, work_state: &WorkState) -> Duration {
 		match work_state {
 			WorkState::Resting => Duration::from_secs(self.break_time),
 			WorkState::Working => Duration::from_secs(self.work_time),
-		}
-	}
-	pub fn get_duration(&self, work_state: &WorkState) -> Duration {
-		match work_state {
-			WorkState::Resting => Duration::from_secs(self.break_time*60),
-			WorkState::Working => Duration::from_secs(self.work_time*60),
 		}
 	}
 }
@@ -50,6 +57,7 @@ pub struct AppState {
 
 	// config
 	pub user_config: UserConfig,
+	pub user_config_draft: UserConfig,
 
 	// audio
 	pub audio_manager: AudioManager,
@@ -76,6 +84,7 @@ impl Default for AppState {
 			pause_interval: Duration::from_secs(0),
 			elapsed: Duration::from_secs(0),
 			user_config: UserConfig::default(),
+			user_config_draft: UserConfig::default(),
 			work_state: WorkState::default(),
 			audio_manager: manager,
 			notif_sound
@@ -94,7 +103,7 @@ impl AppState {
 		self.elapsed += self.cur_time.elapsed();
 		self.cur_time = std::time::Instant::now();
 
-		if self.elapsed > self.user_config.get_duration(&self.work_state) {
+		if self.elapsed > self.user_config.get_duration_secs(&self.work_state) {
 			self.audio_manager.play(self.notif_sound.clone())
 				.unwrap();
 			self.reset();

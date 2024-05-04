@@ -63,10 +63,10 @@ pub fn main_page(ctx: &eframe::egui::Context, app_state: &mut AppState) {
 			// display stats
 			let time_left = match app_state.work_state {
 				WorkState::Working => {
-					app_state.user_config.get_duration(&WorkState::Working) - app_state.elapsed
+					app_state.user_config.get_duration_secs(&WorkState::Working) - app_state.elapsed
 				},
 				WorkState::Resting => {
-					app_state.user_config.get_duration(&WorkState::Resting) - app_state.elapsed
+					app_state.user_config.get_duration_secs(&WorkState::Resting) - app_state.elapsed
 				}
 			};
 
