@@ -15,10 +15,34 @@ pub fn main_page(ctx: &eframe::egui::Context, app_state: &mut AppState) {
 	egui::CentralPanel::default()
 		.show(ctx, 
 		|ui| {
+
 			ui.heading(format!("State: {}", match app_state.work_state {
 				WorkState::Resting => "Rest Time",
 				WorkState::Working => "Work Time",
 			}));
+
+			ui.heading(match app_state.running {
+				RunningState::Running | RunningState::Paused => {
+					format_duration(&app_state.elapsed)
+				},
+				_ => {"00.00.000".to_string()}
+			});
+
+			// display stats
+			let time_left = match app_state.work_state {
+				WorkState::Working => {
+					app_state.user_config.get_duration_secs(&WorkState::Working) - app_state.elapsed
+				},
+				WorkState::Resting => {
+					app_state.user_config.get_duration_secs(&WorkState::Resting) - app_state.elapsed
+				}
+			};
+
+			ui.label(
+				format!("Time Left: {}", format_duration(&time_left))
+			);
+
+			ui.add_space(5.0);
 
 			ui.with_layout(
 				egui::Layout::left_to_right(egui::Align::Min), 
@@ -54,35 +78,23 @@ pub fn main_page(ctx: &eframe::egui::Context, app_state: &mut AppState) {
 
 				});
 
+			ui.add_space(5.0);
+			ui.separator();
+			ui.add_space(5.0);
+
+			ui.with_layout(
+				egui::Layout::right_to_left(egui::Align::Min), |ui| {
+					if ui.button("Settings").clicked() {
+						app_state.active_page = Pages::Config;
+					}
+					
+					
+				});
+
 			if app_state.running == RunningState::Running {
 				app_state.record_time();
 
 				ctx.request_repaint();
-			}
-
-			// display stats
-			let time_left = match app_state.work_state {
-				WorkState::Working => {
-					app_state.user_config.get_duration_secs(&WorkState::Working) - app_state.elapsed
-				},
-				WorkState::Resting => {
-					app_state.user_config.get_duration_secs(&WorkState::Resting) - app_state.elapsed
-				}
-			};
-
-			ui.heading(match app_state.running {
-				RunningState::Running | RunningState::Paused => {
-					format_duration(&app_state.elapsed)
-				},
-				_ => {"00.00.000".to_string()}
-			});
-
-			ui.label(
-				format!("Time Left: {}", format_duration(&time_left))
-			);
-
-			if ui.button("Settings").clicked() {
-				app_state.active_page = Pages::Config;
 			}
 		});
 }

@@ -1,5 +1,7 @@
-use eframe::*;
+use std::option;
 
+use eframe::egui::Vec2;
+use eframe::*;
 use crate::{app_state::AppState, states::Pages};
 use crate::pages::*;
 
@@ -14,9 +16,18 @@ impl PomodoroApp {
 	}
 
 	pub fn run() -> eframe::Result<()> {
+		let mut options = NativeOptions {
+			centered: true,
+			..Default::default()
+		};
+
+		options.viewport.inner_size = Some(Vec2::new(300.0, 140.0));
+		options.viewport.resizable = Some(false);
+		options.viewport = options.viewport.with_maximize_button(false);
+
 		run_native(
 			"Pomodoro App", 
-			NativeOptions::default(), 
+			options, 
 			Box::new(
 				|cc| Box::new(Self::new(cc))
 			)

@@ -3,8 +3,8 @@ use kira::{manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings
 
 use crate::states::*;
 
-pub const WORK_TIME_SECS: u64 = 32*60 + 30;
-pub const BREAK_TIME_SECS: u64 = 32*60 + 30;
+pub const WORK_TIME_SECS: u64 = 25*60;
+pub const BREAK_TIME_SECS: u64 = 5*60;
 
 pub struct UserConfig {
 	pub work_time: u64,
@@ -106,9 +106,10 @@ impl AppState {
 		if self.elapsed > self.user_config.get_duration_secs(&self.work_state) {
 			self.audio_manager.play(self.notif_sound.clone())
 				.unwrap();
+			let prev_work_state = self.work_state.clone();
 			self.reset();
 			
-			match self.work_state {
+			match prev_work_state {
 				WorkState::Resting => self.work_state = WorkState::Working,
 				WorkState::Working => self.work_state = WorkState::Resting,
 			};

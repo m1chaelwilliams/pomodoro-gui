@@ -15,7 +15,7 @@ pub enum RunningState {
 	Stopped
 }
 
-#[derive(Default, PartialEq, Eq)]
+#[derive(Default, PartialEq, Eq, Clone)]
 pub enum WorkState {
 	#[default]
 	Working,
